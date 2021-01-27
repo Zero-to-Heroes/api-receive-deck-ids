@@ -1,0 +1,51 @@
+# https://github.com/awslabs/serverless-application-model/blob/develop/versions/2016-10-31.md
+# Indentation needs to be set with spaces, because YAML...
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Globals:
+    Api:
+        # API Gateway regional endpoints
+        EndpointConfiguration: EDGE
+        Cors:
+            AllowMethods: "'*'"
+            AllowHeaders: "'*'"
+            AllowOrigin: "'*'"
+
+Resources:
+    ReceiveDeckIdsFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            Handler: receive-deck-ids.default
+            Runtime: nodejs10.x
+            Timeout: 180
+            CodeUri: ./dist/receive-deck-ids
+            MemorySize: 128
+            ReservedConcurrentExecutions: 40
+            # https://stackoverflow.com/questions/39144688/aws-lambda-invoke-not-calling-another-lambda-function-node-js
+            # VpcConfig:
+            #     SecurityGroupIds:
+            #         - sg-0ed63616362bf1a30
+            #     SubnetIds:
+            #         - subnet-0b36da5c19637a351
+            #         - subnet-0b730ca9af74a95dd
+            Policies:
+                - AWSLambdaVPCAccessExecutionRole
+                - AmazonSESFullAccess
+                - SecretsManagerReadWrite
+                - AmazonS3FullAccess
+                # - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
+            Tags:
+                LambdaName: api-receive-deck-ids
+            Events:
+                ReceiveDeckIdsResource:
+                    Type: Api
+                    Properties:
+                        Path: /
+                        Method: any
+
+Outputs:
+    ReceiveDeckIdsApi:
+        Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/updateDeckIds'
+        Export:
+            Name: ReceiveDeckIdsApi

@@ -20,10 +20,7 @@ export default async (event): Promise<any> => {
 			SecretId: 'third-party-keys',
 		};
 		const secret: any = await getSecret(secretsManager, secretRequest);
-		console.log('keys', secret);
-		console.log('event');
 		const inputToken = event.headers['x-firestone-third-party-token'];
-		console.log('inputToken', inputToken);
 		if (inputToken !== secret.vsKey) {
 			console.warn('unauthorized', inputToken, secret.vsKey);
 			return {
@@ -39,19 +36,13 @@ export default async (event): Promise<any> => {
 		const collectibleCards: readonly ReferenceCard[] = allCards.getCards().filter(card => card.collectible);
 
 		const csvInput: string = event.body;
-		console.log('csvInput', csvInput.indexOf('\n'), csvInput.indexOf('\r'), csvInput.indexOf('\r\n'));
 
 		const lines: string[] = csvInput.split(/\r?\n/);
-		console.log('lines', lines.length);
 		const input: any[] = lines.slice(1).map(line => toInput(line));
-		console.log('input', input);
 		const decksConfig: readonly DeckConfig[] = generateDecksConfig(input, collectibleCards);
-		console.log('output');
 
 		const stringResults = JSON.stringify(decksConfig);
-		console.log('stringified results');
 		const gzippedResults = gzipSync(stringResults);
-		console.log('zipped results');
 		await s3.writeFile(
 			gzippedResults,
 			'static.zerotoheroes.com',
@@ -59,7 +50,6 @@ export default async (event): Promise<any> => {
 			'application/json',
 			'gzip',
 		);
-		console.log('decks-config saved to s3');
 
 		const response = {
 			statusCode: 200,
@@ -74,7 +64,6 @@ export default async (event): Promise<any> => {
 			isBase64Encoded: false,
 			body: JSON.stringify({ message: 'not ok', exception: e }),
 		};
-		console.log('sending back error reponse', response);
 		return response;
 	}
 };

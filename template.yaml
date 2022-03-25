@@ -17,7 +17,7 @@ Resources:
         Type: AWS::Serverless::Function
         Properties:
             Handler: receive-deck-ids.default
-            Runtime: nodejs10.x
+            Runtime: nodejs12.x
             Timeout: 180
             CodeUri: ./dist/receive-deck-ids
             MemorySize: 128
